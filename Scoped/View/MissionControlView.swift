@@ -85,25 +85,6 @@ struct MissionControlView: View {
                             }
                         }
                     }
-                    
-                    // Scrollable Launch History
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 20) {
-                            ForEach(viewModel.sortedLaunches.prefix(10)) { launch in
-                                VStack {
-                                    AsyncImage(url: URL(string: launch.links.patch.small ?? "")) { image in
-                                        image.resizable().aspectRatio(contentMode: .fit)
-                                    } placeholder: {
-                                        Image(systemName: "photo")
-                                    }
-                                    .frame(width: 50, height: 50)
-                                    Text(launch.name)
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                    }
-                    .frame(height: 100)
                 }
                 .padding()
             }

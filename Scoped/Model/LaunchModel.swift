@@ -10,6 +10,15 @@ struct Launch: Codable, Identifiable, Equatable {
     let rocket: String
     let upcoming: Bool
     
+    var launchDate: Date? {
+        ISO8601DateFormatter().date(from: date_utc)
+    }
+    
+    var daysUntilLaunch: Int {
+        guard let launchDate = launchDate else { return 0 }
+        return Int(ObjectiveCUtilities.days(untilLaunch: launchDate))
+    }
+    
     static func == (lhs: Launch, rhs: Launch) -> Bool {
         lhs.id == rhs.id
     }

@@ -54,7 +54,12 @@ class LaunchesViewModel: ObservableObject {
                     self?.errorMessage = "Failed to fetch launches: \(error.localizedDescription)"
                 }
             } receiveValue: { [weak self] launches in
-                self?.launches = launches.sorted(by: { $0.date_utc > $1.date_utc })
+                self?.launches = launches.sorted { launch1, launch2 in
+                    guard let date1 = launch1.launchDate, let date2 = launch2.launchDate else {
+                        return false
+                    }
+                    return date1 > date2
+                }
             }
             .store(in: &cancellables)
     }
@@ -106,7 +111,7 @@ class LaunchesViewModel: ObservableObject {
     }
     
     var sortedLaunches: [Launch] {
-        launches // The launches are already sorted when fetched
+        launches // The launches are already sorted when fetched, most recent first
     }
     
     var filteredLaunches: [Launch] {
