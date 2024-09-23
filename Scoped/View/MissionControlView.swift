@@ -12,6 +12,7 @@ struct MissionControlView: View {
     @State private var showLaunchGraph = false
     @State private var altitudeData: [AltitudePoint] = []
     @State private var currentTime = 0
+    @State private var nasaImages: [NASAImage] = []
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -85,10 +86,42 @@ struct MissionControlView: View {
                             }
                         }
                     }
+                    
+                    // NASA Images Grid
+                    Text("NASA Image Gallery")
+                        .font(.headline)
+                    
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(nasaImages) { image in
+                            AsyncImage(url: URL(string: image.url)) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(height: 150)
+                                        .clipped()
+                                case .failure(_):
+                                    Image(systemName: "photo")
+                                        .frame(height: 150)
+                                case .empty:
+                                    ProgressView()
+                                        .frame(height: 150)
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                            .cornerRadius(10)
+                        }
+                    }
+                    .padding(.horizontal)
                 }
                 .padding()
             }
             .navigationTitle("Mission Control")
+            .onAppear {
+                fetchNASAImages()
+            }
         }
     }
     
@@ -100,10 +133,33 @@ struct MissionControlView: View {
             altitudeData.append(AltitudePoint(time: i, altitude: altitude))
         }
     }
+    
+    func fetchNASAImages() {
+        guard let url = URL(string: "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&count=10") else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            do {
+                let decodedData = try JSONDecoder().decode([NASAImage].self, from: data)
+                DispatchQueue.main.async {
+                    self.nasaImages = decodedData
+                }
+            } catch {
+                print("Error decoding NASA API response: \(error)")
+            }
+        }.resume()
+    }
 }
 
 struct AltitudePoint: Identifiable {
     let id = UUID()
     let time: Int
     let altitude: Double
+}
+
+struct NASAImage: Codable, Identifiable {
+    let id = UUID()
+    let url: String
+    let title: String
 }
